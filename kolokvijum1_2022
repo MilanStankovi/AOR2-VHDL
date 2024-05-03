@@ -1,0 +1,78 @@
+library ieee;
+use ieee.std_logic_1164.all;
+entity orGate is
+port (A : in std_logic;
+      B : in std_logic;
+      Y : out std_logic);
+end entity;
+architecture orGate_arch of orGate is
+begin
+y <= A or B;
+end architecture;
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+entity xorGate is
+port (A : in std_logic;
+      B : in std_logic;
+      Y : out std_logic);
+end entity;
+architecture xorGate_arch of xorGate is
+begin
+Y <= A xor B;
+end architecture;
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+entity Sistem is
+generic (n : integer := 8);
+port (a, b : in std_logic_vector(n-1 downto 0);
+      d : out std_logic_vector(n-1 downto 0);
+      c : in std_logic);
+end entity;
+architecture Sistem_arch of Sistem is
+signal p : std_logic_vector(n-1 downto 0);
+begin
+G1: for i in 0 to n-1 generate
+G2: if i = 0 generate
+LN1: entity work.xorGate(xorGate_arch)
+port map(a(i),b(i),p(i));
+LN2: entity work.orGate(orGate_arch)
+port map(p(i),c,d(i));
+else generate
+LN3: entity work.xorGate(xorGate_arch)
+port map(a(i),b(i),p(i));
+LN4: entity work.orGate(orGate_arch)
+port map(p(i),d(i-1),d(i));
+end generate;
+end generate;
+end architecture;
+
+--test bench
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity test is
+generic (x : integer := 4);
+end entity;
+architecture test of test is
+signal a,b,d : std_logic_vector(x-1 downto 0);
+signal c : std_logic;
+begin
+DUT: entity work.Sistem(Sistem_arch)
+generic map (x)
+port map (a,b,d,c);
+stimulus: process begin
+a <= "1101";
+b <= "1001";
+c <= '0';
+wait for 50ns;
+a <= "1101";
+b <= "1001";
+c <= '1';
+wait for 50ns;
+end process;
+end architecture;
