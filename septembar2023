@@ -1,0 +1,55 @@
+entity Brojac is
+generic (n : integer := 8);
+port (clock, reset : in bit;
+      count : out bit_vector(n-1 downto 0));
+end entity;
+architecture Brojac_arch of Brojac is
+begin
+process (reset,clock) is
+variable ct : bit_vector(n-1 downto 0);
+variable br : integer;
+begin
+if clock'event and clock = '1' then
+if reset = '1' then
+ct := (others => '0');
+ct(n-1) := '1';
+br := 0;
+else
+if br = n then
+ct := (others => '0');
+ct(n-1) := '1';
+br := 0;
+else
+ct(n-1-br) := '1';
+br := br + 1;
+end if;
+end if;
+end if;
+count <= ct;
+end process;
+end architecture;
+
+--test bench
+
+entity test is
+generic (x : integer := 4);
+end entity;
+architecture test of test is
+signal reset : bit;
+signal clock : bit := '0';
+signal count : bit_vector(x-1 downto 0);
+begin
+
+clock <= not clock after 10ns;
+
+DUT: entity work.Brojac(Brojac_arch)
+generic map(x)
+port map(clock,reset,count);
+
+stimulus: process begin
+reset <= '1';
+wait for 50ns;
+reset <= '0';
+wait for 200ns;
+end process;
+end architecture;
