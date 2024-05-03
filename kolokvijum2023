@@ -1,0 +1,84 @@
+entity BCD is
+port (clock : in bit;
+      din : in bit_vector(3 downto 0);
+      we : in bit;
+      count : out bit_vector(3 downto 0));
+end entity;
+architecture BCD_arch of BCD is
+begin
+process(clock,din) is
+variable c : bit_vector(3 downto 0);
+begin
+if clock'event and clock = '1' then
+if we = '1' then
+c := din;
+else
+case c is
+when "0000" => c := "0001";
+when "0001" => c := "0010";
+when "0010" => c := "0011";
+when "0011" => c := "0100";
+when "0100" => c := "0101";
+when "0101" => c := "0110";
+when "0110" => c := "0111";
+when "0111" => c := "1000";
+when "1000" => c := "1001";
+when others => c := "0000";
+end case;
+end if;
+end if;
+count <= c;
+end process;
+end architecture;
+
+entity kolo is
+port (clock, reset, we : in bit;
+      din : in bit_vector(3 downto 0);
+      count : out bit_vector(3 downto 0));
+end entity;
+architecture kolo_arch of kolo is
+signal ulaz : bit_vector(3 downto 0);
+signal clk : bit := '0';
+begin
+process (din,clock,reset) is
+begin
+if reset = '1' then
+ulaz <= "0000";
+else
+ulaz <= din;
+end if;
+if clock'event and clock = '1' then
+clk <= not clk;
+end if;
+end process;
+
+br: entity work.BCD(BCD_arch)
+port map (clk,ulaz,we, count);
+end architecture;
+
+-- test bench
+
+entity test is
+end entity;
+architecture test of test is
+signal reset, we : bit;
+signal clock : bit := '0';
+signal din, count : bit_vector(3 downto 0);
+begin
+DUT1 : entity work.kolo(kolo_arch)
+port map (clock,reset,we,din,count);
+clock <= not clock after 10ns;
+stimulus: process begin
+we <= '1';
+reset <= '1';
+wait for 50ns;
+reset <= '0';
+we <= '0';
+wait for 200ns;
+we <= '1';
+din <= "0111";
+wait for 50ns;
+we <= '0';
+wait for 300ns;
+end process;
+end architecture;
