@@ -1,0 +1,52 @@
+entity Sistem is
+generic (n : integer := 8);
+port (A,B : in bit_vector(n-1 downto 0);
+      C : out bit_vector(n-1 downto 0);
+      D : in bit);
+end entity;
+architecture Sistem_arch of Sistem is
+signal s : bit_vector(n-1 downto 0);
+begin
+G1: for i in 0 to n-1 generate
+begin
+G2: if i = 0 generate
+s(i) <= A(i) and B(i);
+C(i) <= s(i) or D;
+else generate
+s(i) <= A(i) and B(i);
+C(i) <= s(i) or C(i-1);
+end generate;
+end generate;
+end architecture;
+
+--test bench
+
+entity test is
+generic (x : integer := 4);
+end entity;
+architecture test of test is
+signal A,B,C : bit_vector(x-1 downto 0);
+signal D : bit;
+begin
+DUT: entity work.Sistem(Sistem_arch)
+generic map(x)
+port map(A,B,C,D);
+stimulus: process begin
+A <= "0110";
+B <= "1010";
+D <= '0';
+wait for 200ns;
+A <= "0110";
+B <= "1010";
+D <= '1';
+wait for 200ns;
+A <= "0110";
+B <= "1000";
+D <= '0';
+wait for 200ns;
+A <= "1110";
+B <= "1000";
+D <= '0';
+wait for 200ns;
+end process;
+end architecture;
